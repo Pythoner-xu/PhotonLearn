@@ -6,11 +6,13 @@ using System.Threading.Tasks;
 
 //
 using ExitGames.Client.Photon;
+using CommonLibrary;
 
 namespace GameClient
 {
     public class Application : IPhotonPeerListener
     {
+        #region 单例实现
         private static Application instance;
         public static Application Instance
         {
@@ -23,13 +25,14 @@ namespace GameClient
                 return instance;
             }
         }
+        #endregion
 
         private readonly string serverAddress = "127.0.0.1:5055";
         private readonly string serverName = "GameServer";
+        private bool m_ServerConnected;  // 已连接
+        private bool m_OnLogin;          // 登陆中
 
-        public bool m_ServerConnected;  // 已连接
-        public bool m_OnLogin;          // 登陆中
-        public PhotonPeer m_Peer;
+        private PhotonPeer m_Peer;
 
         private Application()
         {
@@ -43,8 +46,11 @@ namespace GameClient
         /// </summary>
         public void Run()
         {
-            if (m_Peer.Connect(serverAddress, serverName))
+            // 建立连接
+            bool ret = m_Peer.Connect(serverAddress, serverName);
+            if (ret)
             {
+                Console.WriteLine("-----------------------建立连接-------------------------------");
                 // 连接成功
                 do
                 {
