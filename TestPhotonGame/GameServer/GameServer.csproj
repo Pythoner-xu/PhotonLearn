@@ -30,6 +30,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="CommonProtocol">
+      <HintPath>..\CommonProtocol\bin\Debug\CommonProtocol.dll</HintPath>
+    </Reference>
     <Reference Include="ExitGames.Logging.Log4Net">
       <HintPath>..\lib\ExitGames.Logging.Log4Net.dll</HintPath>
     </Reference>

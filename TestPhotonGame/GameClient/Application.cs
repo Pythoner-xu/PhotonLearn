@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 //
 using ExitGames.Client.Photon;
-using CommonLibrary;
+using CommonProtocol;
 
 namespace GameClient
 {
@@ -67,11 +67,11 @@ namespace GameClient
                         string password = Console.ReadLine();
 
                         Dictionary<byte, object> param = new Dictionary<byte, object>();
-                        param.Add((byte)1, account.Trim());
-                        param.Add((byte)2, password.Trim());
+                        param.Add((byte)LoginParamType.Account, account.Trim());
+                        param.Add((byte)LoginParamType.Password, password.Trim());
 
                         // 向Server端发送信息（命令代码暂定5）
-                        this.m_Peer.OpCustom(5, param, true);
+                        this.m_Peer.OpCustom((byte)OperationCode.Login, param, true);
                         this.m_OnLogin = true;
                     }
 
@@ -118,22 +118,22 @@ namespace GameClient
             // 监听Server端发送过来的操作命令信息
             switch (operationResponse.OperationCode)
             {
-                case (byte)5:
+                case (byte)OperationCode.Login:
                     switch (operationResponse.ReturnCode)
 	                {
-                        case (short)0: // 成功
-                            int ret = Convert.ToInt16(operationResponse.Parameters[(byte)80]);
-                            string account = Convert.ToString(operationResponse.Parameters[(byte)1]);
-                            string password = Convert.ToString(operationResponse.Parameters[(byte)2]);
-                            string nickName = Convert.ToString(operationResponse.Parameters[(byte)3]);
+                        case (short)ErrorCode.Ok: // 成功
+                            int ret = Convert.ToInt16(operationResponse.Parameters[(byte)LoginParamType.Ret]);
+                            string account = Convert.ToString(operationResponse.Parameters[(byte)LoginParamType.Account]);
+                            string password = Convert.ToString(operationResponse.Parameters[(byte)LoginParamType.Password]);
+                            string nickName = Convert.ToString(operationResponse.Parameters[(byte)LoginParamType.NickName]);
 
                             Console.WriteLine("Login Success \nRet={0} \nAccount={1} \nPassword={2} \nNickName-{3}", ret, account, password, nickName);
                             break;
-                        case (short)1: // 账号或密码错误
+                        case (short)ErrorCode.InvalidOperation: // 账号或密码错误
                             Console.WriteLine(operationResponse.DebugMessage);
                             this.m_OnLogin = false;
                             break;
-                        case (short)2: // 参数错误
+                        case (short)ErrorCode.InvalidParam: // 参数错误
                             Console.WriteLine(operationResponse.DebugMessage);
                             break;
                         default:
