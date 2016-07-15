@@ -6,6 +6,7 @@ using System.Collections.Generic;
 
 // 
 using ExitGames.Client.Photon;
+using CommonProtocol;
 
 public class PhotonClient : MonoBehaviour, IPhotonPeerListener
 {
@@ -122,11 +123,11 @@ public class PhotonClient : MonoBehaviour, IPhotonPeerListener
             if (this.ui_AccountInput.text != "" && this.ui_PasswordInput.text != "")
             {
                 Dictionary<byte, object> param = new Dictionary<byte, object>();
-                param.Add((byte)1, this.ui_AccountInput.text.Trim());
-                param.Add((byte)2, this.ui_PasswordInput.text.Trim());
+                param.Add((byte)LoginParamType.Account, this.ui_AccountInput.text.Trim());
+                param.Add((byte)LoginParamType.Password, this.ui_PasswordInput.text.Trim());
 
                 // 向Server端发送信息（命令代码暂定5）
-                this.m_Peer.OpCustom(5, param, true);
+                this.m_Peer.OpCustom((byte)OperationCode.Login, param, true);
             }   
         }
         else
@@ -162,25 +163,25 @@ public class PhotonClient : MonoBehaviour, IPhotonPeerListener
         this.ui_InfoPanel.text += string.Format("\n<color=green>{0}</color>", "OnEvent:" + operationResponse.OperationCode);
         switch (operationResponse.OperationCode)
         {
-            case (byte)5:
+            case (byte)OperationCode.Login:
                 switch (operationResponse.ReturnCode)
                 {
-                    case (short)0:
+                    case (short)ErrorCode.Ok:
                         this.m_Login = true;
-                        int ret = Convert.ToInt16(operationResponse.Parameters[(byte)80]);
-                        string account = Convert.ToString(operationResponse.Parameters[(byte)1]);
-                        string password = Convert.ToString(operationResponse.Parameters[(byte)2]);
-                        string nickName = Convert.ToString(operationResponse.Parameters[(byte)3]);
+                        int ret = Convert.ToInt16(operationResponse.Parameters[(byte)LoginParamType.Ret]);
+                        string account = Convert.ToString(operationResponse.Parameters[(byte)LoginParamType.Account]);
+                        string password = Convert.ToString(operationResponse.Parameters[(byte)LoginParamType.Password]);
+                        string nickName = Convert.ToString(operationResponse.Parameters[(byte)LoginParamType.NickName]);
 
                         Console.WriteLine("Login Success \nRet={0} \nAccount={1} \nPassword={2} \nNickName-{3}", ret, account, password, nickName);
                         this.ui_InfoPanel.text += string.Format("\nLogin Success \nRet={0} \nAccount={1} \nPassword={2} \nNickName-{3}", ret, account, password, nickName);
                         break;
-                    case (short)1:
+                    case (short)ErrorCode.InvalidOperation:
                         // 账号或密码错误
                         Debug.LogError(operationResponse.DebugMessage);
                         this.ui_InfoPanel.text += string.Format("\n<color=green>{0}</color>", operationResponse.DebugMessage);
                         break;
-                    case (short)2:
+                    case (short)ErrorCode.InvalidParam:
                         // 参数错误
                         Debug.LogError(operationResponse.DebugMessage);
                         this.ui_InfoPanel.text += string.Format("\n<color=green>{0}</color>", operationResponse.DebugMessage);
